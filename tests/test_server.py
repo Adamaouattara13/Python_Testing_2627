@@ -153,3 +153,12 @@ class TestPurchasePlaces:
             'places': '3'
         })
         assert int(server.clubs[0]['points']) == initial_points - 3
+
+    def test_cannot_book_more_than_12_places(self, client):
+        """Bug-05 fix: ne peut pas reserver plus de 12 places par competition."""
+        response = client.post('/purchasePlaces', data={
+            'competition': 'Future Festival',
+            'club': 'Simply Lift',
+            'places': '13'
+        }, follow_redirects=True)
+        assert b'12' in response.data
