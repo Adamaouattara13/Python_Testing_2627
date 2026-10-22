@@ -133,3 +133,23 @@ class TestPurchasePlaces:
             'places': '999'
         }, follow_redirects=True)
         assert b'disponible' in response.data or b'available' in response.data
+
+    def test_places_deducted_from_competition(self, client):
+        """Bug-04 fix: les places sont bien deduites de la competition."""
+        initial_places = int(server.competitions[0]['numberOfPlaces'])
+        client.post('/purchasePlaces', data={
+            'competition': 'Future Festival',
+            'club': 'Simply Lift',
+            'places': '3'
+        })
+        assert int(server.competitions[0]['numberOfPlaces']) == initial_places - 3
+
+    def test_points_deducted_from_club(self, client):
+        """Bug-04 fix: les points sont bien deduits du club."""
+        initial_points = int(server.clubs[0]['points'])
+        client.post('/purchasePlaces', data={
+            'competition': 'Future Festival',
+            'club': 'Simply Lift',
+            'places': '3'
+        })
+        assert int(server.clubs[0]['points']) == initial_points - 3
