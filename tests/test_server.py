@@ -198,3 +198,12 @@ class TestHelpers:
         """Date invalide -> True."""
         comp = {'date': 'invalid-date', 'name': 'Bad'}
         assert server.is_past_competition(comp) is True
+
+    def test_cannot_book_more_than_club_points(self, client):
+        """Bug-08 fix: ne peut pas reserver plus de places que de points disponibles."""
+        response = client.post('/purchasePlaces', data={
+            'competition': 'Future Festival',
+            'club': 'Iron Temple',
+            'places': '5'
+        }, follow_redirects=True)
+        assert b'insuffisant' in response.data or b'point' in response.data
