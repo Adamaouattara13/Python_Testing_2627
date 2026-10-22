@@ -9,6 +9,16 @@
             "name": "Fall Classic",
             "date": "2020-10-22 13:30:00",
             "numberOfPlaces": "13"
+        },
+        {
+            "name": "Winter Championship",
+            "date": "2027-01-15 10:00:00",
+            "numberOfPlaces": "20"
+        },
+        {
+            "name": "Summer Open",
+            "date": "2027-07-10 09:00:00",
+            "numberOfPlaces": "30"
         }
     ]
 }
