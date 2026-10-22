@@ -74,8 +74,28 @@ Merci !
 
     We also like to show how well we're testing, so there's a module called 
     [coverage](https://coverage.readthedocs.io/en/coverage-5.1/) you should add to your project.
-   
- 6. Flake8 Report 
-    
 
+    Pour lancer la suite de tests et afficher la couverture :
+    `ash
+    pytest --cov=server --cov-report=term-missing
+    # Ou générer le rapport HTML :
+    pytest --cov=server --cov-report=html
+    `
 
+6. Flake8 Report
+
+    Pour vérifier la conformité PEP 8 :
+    `ash
+    flake8 server.py tests/test_server.py --max-line-length=120
+    `
+
+7. Tests de Performance / Charge (Locust)
+
+    Pour lancer les tests de charge :
+    `ash
+    # 1. Démarrer le serveur Flask dans un terminal :
+    python server.py
+
+    # 2. Exécuter Locust en mode headless :
+    locust -f tests/locustfile.py --headless -u 6 -r 2 -t 10s --host http://127.0.0.1:5000
+    `
