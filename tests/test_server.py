@@ -66,3 +66,32 @@ class TestIndex:
         """La page d'accueil contient un formulaire email."""
         response = client.get('/')
         assert b'email' in response.data
+
+
+class TestShowSummary:
+    def test_valid_email_returns_welcome(self, client):
+        """Happy path: email valide -> page welcome avec les points du club."""
+        response = client.post('/showSummary', data={'email': 'john@simplylift.co'})
+        assert response.status_code == 200
+        assert b'john@simplylift.co' in response.data
+
+    def test_valid_email_shows_points(self, client):
+        """Happy path: les points du club sont affiches."""
+        response = client.post('/showSummary', data={'email': 'john@simplylift.co'})
+        assert b'13' in response.data
+
+    def test_invalid_email_redirects_to_index(self, client):
+        """Bug-01 fix: email inconnu -> redirection vers index, pas de crash."""
+        response = client.post('/showSummary', data={'email': 'unknown@email.com'})
+        assert response.status_code == 302
+
+    def test_invalid_email_shows_flash_message(self, client):
+        """Bug-01 fix: email inconnu -> message flash d'erreur visible."""
+        response = client.post('/showSummary', data={'email': 'unknown@email.com'}, follow_redirects=True)
+        assert response.status_code == 200
+        assert 'non trouv'.encode('utf-8') in response.data or b'Email' in response.data or b'found' in response.data
+
+    def test_empty_email_redirects(self, client):
+        """Sad path: email vide -> redirection."""
+        response = client.post('/showSummary', data={'email': ''})
+        assert response.status_code == 302
