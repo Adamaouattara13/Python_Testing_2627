@@ -113,3 +113,23 @@ class TestBook:
         """Bug-02 fix: competition inconnue -> redirection, pas de crash."""
         response = client.get('/book/Unknown Competition/Simply Lift')
         assert response.status_code == 302
+
+
+class TestPurchasePlaces:
+    def test_valid_purchase(self, client):
+        """Happy path: achat valide -> confirmation."""
+        response = client.post('/purchasePlaces', data={
+            'competition': 'Future Festival',
+            'club': 'Simply Lift',
+            'places': '2'
+        }, follow_redirects=True)
+        assert response.status_code == 200
+
+    def test_cannot_book_more_than_available_places(self, client):
+        """Bug-03 fix: ne peut pas reserver plus que le nombre de places disponibles."""
+        response = client.post('/purchasePlaces', data={
+            'competition': 'Future Festival',
+            'club': 'Simply Lift',
+            'places': '999'
+        }, follow_redirects=True)
+        assert b'disponible' in response.data or b'available' in response.data
