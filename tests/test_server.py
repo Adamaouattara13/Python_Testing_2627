@@ -235,3 +235,31 @@ class TestHelpers:
             'places': '1'
         })
         assert response.status_code == 302
+
+
+class TestPointsDisplay:
+    def test_points_display_returns_200(self, client):
+        """Happy path: page points accessible."""
+        response = client.get('/pointsDisplay')
+        assert response.status_code == 200
+
+    def test_points_display_shows_all_clubs(self, client):
+        """Phase 2: tous les clubs apparaissent dans le tableau."""
+        response = client.get('/pointsDisplay')
+        assert b'Simply Lift' in response.data
+        assert b'Iron Temple' in response.data
+        assert b'She Lifts' in response.data
+
+    def test_points_display_shows_points(self, client):
+        """Phase 2: les points des clubs sont affiches."""
+        response = client.get('/pointsDisplay')
+        assert b'13' in response.data
+        assert b'4' in response.data
+
+
+class TestLogout:
+    def test_logout_redirects_to_index(self, client):
+        """Happy path: logout -> redirection vers index."""
+        response = client.get('/logout')
+        assert response.status_code == 302
+        assert '/' in response.headers.get('Location', '')
