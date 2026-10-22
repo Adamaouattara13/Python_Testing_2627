@@ -1,116 +1,148 @@
 import json
+import os
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, flash, url_for
 
 
-def is_past_competition(competition):
-    """Vérifie si la date d'une compétition est passée."""
-    try:
-        comp_date = datetime.strptime(competition['date'], '%Y-%m-%d %H:%M:%S')
-        return comp_date < datetime.now()
-    except (ValueError, KeyError, TypeError):
-        return True
-
-
-
 def loadClubs():
     with open('clubs.json') as c:
-         listOfClubs = json.load(c)['clubs']
-         return listOfClubs
+        listOfClubs = json.load(c)['clubs']
+        return listOfClubs
 
 
+def loadCompetitions():
+    with open('competitions.json') as comps:
+        listOfCompetitions = json.load(comps)['competitions']
+        return listOfCompetitions
 
 
 def saveClubs(clubs_data):
-    """Sauvegarde la liste des clubs dans clubs.json."""
+    """Persist clubs data back to JSON file."""
     with open('clubs.json', 'w') as c:
         json.dump({'clubs': clubs_data}, c, indent=4)
 
 
-def saveCompetitions(comps_data):
-    """Sauvegarde la liste des compétitions dans competitions.json."""
+def saveCompetitions(competitions_data):
+    """Persist competitions data back to JSON file."""
     with open('competitions.json', 'w') as comps:
-        json.dump({'competitions': comps_data}, comps, indent=4)
-
-def loadCompetitions():
-    with open('competitions.json') as comps:
-         listOfCompetitions = json.load(comps)['competitions']
-         return listOfCompetitions
+        json.dump({'competitions': competitions_data}, comps, indent=4)
 
 
-app = Flask(__name__)
+def is_past_competition(competition):
+    """Return True if the competition date is in the past.
+    Returns True (safe default) if the date is missing or malformed.
+    """
+    try:
+        comp_date = datetime.strptime(competition['date'], '%Y-%m-%d %H:%M:%S')
+        return comp_date < datetime.now()
+    except (ValueError, KeyError):
+        return True  # Bug-05 fix: treat unparseable dates as past (safe default)
+
+
+app = Flask(__name__, template_folder=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates'))
 app.secret_key = 'something_special'
 
 competitions = loadCompetitions()
 clubs = loadClubs()
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
+
 @app.route('/showSummary', methods=['POST'])
 def showSummary():
+    # Bug-01 fix: handle unknown email gracefully instead of crashing
     email = request.form.get('email', '').strip()
-    matching_clubs = [club for club in clubs if club['email'] == email]
-    if not matching_clubs:
-        flash("Désolé, cette adresse email n'a pas été trouvée.", 'error')
+    club = next((c for c in clubs if c['email'] == email), None)
+    if not club:
+        flash('Email non trouvé. Veuillez vérifier votre adresse email.')
         return redirect(url_for('index'))
-    club = matching_clubs[0]
     return render_template('welcome.html', club=club, competitions=competitions)
 
 
 @app.route('/book/<competition>/<club>')
 def book(competition, club):
-    found_clubs = [c for c in clubs if c['name'] == club]
-    found_comps = [c for c in competitions if c['name'] == competition]
-    if not found_clubs or not found_comps:
-        flash("Club ou compétition introuvable.", 'error')
+    # Bug-02 fix: handle unknown club/competition gracefully
+    foundClub = next((c for c in clubs if c['name'] == club), None)
+    foundCompetition = next((c for c in competitions if c['name'] == competition), None)
+
+    if not foundClub:
+        flash("Club introuvable - veuillez réessayer.")
         return redirect(url_for('index'))
-    foundClub = found_clubs[0]
-    foundCompetition = found_comps[0]
+
+    if not foundCompetition:
+        flash("Compétition introuvable - veuillez réessayer.")
+        return redirect(url_for('index'))
+
+    # Bug-05 fix: prevent booking past competitions
     if is_past_competition(foundCompetition):
-        flash("Cette compétition est déjà terminée.", 'error')
-        return redirect(url_for('index'))
+        flash("Impossible de réserver une compétition passée.")
+        return render_template('welcome.html', club=foundClub, competitions=competitions)
+
     return render_template('booking.html', club=foundClub, competition=foundCompetition)
 
 
 @app.route('/purchasePlaces', methods=['POST'])
 def purchasePlaces():
-    comp_matches = [c for c in competitions if c['name'] == request.form.get('competition')]
-    club_matches = [c for c in clubs if c['name'] == request.form.get('club')]
-    if not comp_matches or not club_matches:
-        flash("Données de réservation invalides.", 'error')
+    # Bug-03 fix: handle unknown club/competition gracefully
+    competition_name = request.form.get('competition', '')
+    club_name = request.form.get('club', '')
+
+    competition = next((c for c in competitions if c['name'] == competition_name), None)
+    club = next((c for c in clubs if c['name'] == club_name), None)
+
+    if not competition or not club:
+        flash('Données invalides - veuillez réessayer.')
         return redirect(url_for('index'))
-    competition = comp_matches[0]
-    club = club_matches[0]
+
+    # Bug-05 fix: prevent purchasing places in past competitions
     if is_past_competition(competition):
-        flash("Impossible de réserver pour une compétition passée.", 'error')
+        flash("Impossible de réserver une compétition passée.")
         return render_template('welcome.html', club=club, competitions=competitions)
+
     try:
         placesRequired = int(request.form.get('places', 0))
     except (ValueError, TypeError):
-        flash("Veuillez saisir un nombre entier valide.", 'error')
+        flash('Nombre de places invalide.')
         return render_template('booking.html', club=club, competition=competition)
+
     if placesRequired <= 0:
-        flash("Le nombre de places doit être supérieur à zéro.", 'error')
+        flash('Le nombre de places doit être supérieur à 0.')
         return render_template('booking.html', club=club, competition=competition)
+
+    availablePlaces = int(competition['numberOfPlaces'])
+    clubPoints = int(club['points'])
+
+    # Bug-06 fix: cannot book more places than available
+    if placesRequired > availablePlaces:
+        flash(f'Seulement {availablePlaces} place(s) disponible(s) pour cette compétition.')
+        return render_template('booking.html', club=club, competition=competition)
+
+    # Bug-07 fix: max 12 places per club per competition
     if placesRequired > 12:
-        flash("Impossible de réserver plus de 12 places en une seule fois.", 'error')
+        flash('Vous ne pouvez pas réserver plus de 12 places par compétition.')
         return render_template('booking.html', club=club, competition=competition)
-    if placesRequired > int(club['points']):
-        flash("Vous n'avez pas assez de points pour réserver ce nombre de places.", 'error')
+
+    # Bug-08 fix: cannot book more places than club has points
+    if placesRequired > clubPoints:
+        flash(f'Points insuffisants. Vous avez {clubPoints} point(s) disponible(s).')
         return render_template('booking.html', club=club, competition=competition)
-    if placesRequired > int(competition['numberOfPlaces']):
-        flash(f"Impossible de réserver : seulement {competition['numberOfPlaces']} places disponibles.", 'error')
-        return render_template('booking.html', club=club, competition=competition)
-    competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - placesRequired
-    club['points'] = int(club['points']) - placesRequired
+
+    # Bug-04 fix: deduct points from club AND places from competition
+    competition['numberOfPlaces'] = availablePlaces - placesRequired
+    club['points'] = clubPoints - placesRequired
+
+    # Bug-09 fix: persist changes to JSON files
     saveCompetitions(competitions)
     saveClubs(clubs)
-    flash('Great-booking complete!')
+
+    flash('Réservation confirmée !')
     return render_template('welcome.html', club=club, competitions=competitions)
 
 
+# Bug-10 fix: /pointsDisplay is a public board (Phase 2 feature) — no auth needed, clean implementation
 @app.route('/pointsDisplay')
 def pointsDisplay():
     return render_template('points.html', clubs=clubs)
@@ -118,4 +150,4 @@ def pointsDisplay():
 
 @app.route('/logout')
 def logout():
-    return redirect(url_for('index'))
+    return redirect(url_for('index'))
