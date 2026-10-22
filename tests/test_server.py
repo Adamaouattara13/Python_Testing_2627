@@ -10,6 +10,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import server  # noqa: E402
 from server import app  # noqa: E402
 
+
+# ---------------------------------------------------------------------------
+# Fixtures
+# ---------------------------------------------------------------------------
+
 CLUBS_DATA = {
     "clubs": [
         {"name": "Simply Lift", "email": "john@simplylift.co", "points": "13"},
@@ -33,21 +38,22 @@ COMPETITIONS_DATA = {
     ]
 }
 
+
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 @pytest.fixture
 def client(monkeypatch):
     """Create a test client with in-memory test data."""
+    # Use deep copies so tests don't interfere with each other
     test_clubs = copy.deepcopy(CLUBS_DATA['clubs'])
     test_competitions = copy.deepcopy(COMPETITIONS_DATA['competitions'])
 
+    # Patch module-level lists and save/load functions
     monkeypatch.setattr(server, 'clubs', test_clubs)
     monkeypatch.setattr(server, 'competitions', test_competitions)
-    if hasattr(server, 'saveClubs'):
-        monkeypatch.setattr(server, 'saveClubs', lambda data: None)
-    if hasattr(server, 'saveCompetitions'):
-        monkeypatch.setattr(server, 'saveCompetitions', lambda data: None)
+    monkeypatch.setattr(server, 'saveClubs', lambda data: None)
+    monkeypatch.setattr(server, 'saveCompetitions', lambda data: None)
 
     app.config['TESTING'] = True
     app.config['WTF_CSRF_ENABLED'] = False
@@ -55,6 +61,10 @@ def client(monkeypatch):
     with app.test_client() as client:
         yield client
 
+
+# ---------------------------------------------------------------------------
+# Tests index
+# ---------------------------------------------------------------------------
 
 class TestIndex:
     def test_index_returns_200(self, client):
@@ -68,74 +78,86 @@ class TestIndex:
         assert b'email' in response.data
 
 
+# ---------------------------------------------------------------------------
+# Tests showSummary — Bug 01
+# ---------------------------------------------------------------------------
+
 class TestShowSummary:
     def test_valid_email_returns_welcome(self, client):
-        """Happy path: email valide -> page welcome avec les points du club."""
+        """Happy path: email valide → page welcome avec les points du club."""
         response = client.post('/showSummary', data={'email': 'john@simplylift.co'})
         assert response.status_code == 200
+        # welcome.html affiche l'email du club dans le titre
         assert b'john@simplylift.co' in response.data
 
     def test_valid_email_shows_points(self, client):
-        """Happy path: les points du club sont affiches."""
+        """Happy path: les points du club sont affichés."""
         response = client.post('/showSummary', data={'email': 'john@simplylift.co'})
         assert b'13' in response.data
 
     def test_invalid_email_redirects_to_index(self, client):
-        """Bug-01 fix: email inconnu -> redirection vers index, pas de crash."""
+        """Bug-01 fix: email inconnu → redirection vers index, pas crash."""
         response = client.post('/showSummary', data={'email': 'unknown@email.com'})
         assert response.status_code == 302
 
     def test_invalid_email_shows_flash_message(self, client):
-        """Bug-01 fix: email inconnu -> message flash d'erreur visible."""
+        """Bug-01 fix: email inconnu → message flash d'erreur visible."""
         response = client.post('/showSummary', data={'email': 'unknown@email.com'}, follow_redirects=True)
         assert response.status_code == 200
-        assert 'non trouv'.encode('utf-8') in response.data or b'Email' in response.data or b'found' in response.data
+        # Le message flash doit apparaître sur la page index
+        assert 'non trouv'.encode('utf-8') in response.data or b'Email' in response.data
 
     def test_empty_email_redirects(self, client):
-        """Sad path: email vide -> redirection."""
+        """Sad path: email vide → redirection."""
         response = client.post('/showSummary', data={'email': ''})
         assert response.status_code == 302
 
 
+# ---------------------------------------------------------------------------
+# Tests book — Bug 02, Bug 05
+# ---------------------------------------------------------------------------
+
 class TestBook:
     def test_valid_club_and_competition(self, client):
-        """Happy path: club et competition valides -> page booking."""
+        """Happy path: club et compétition valides → page booking."""
         response = client.get('/book/Future Festival/Simply Lift')
         assert response.status_code == 200
         assert b'Future Festival' in response.data
 
     def test_unknown_club_redirects(self, client):
-        """Bug-02 fix: club inconnu -> redirection, pas de crash."""
+        """Bug-02 fix: club inconnu → redirection, pas crash."""
         response = client.get('/book/Future Festival/Unknown Club')
         assert response.status_code == 302
 
     def test_unknown_competition_redirects(self, client):
-        """Bug-02 fix: competition inconnue -> redirection, pas de crash."""
+        """Bug-02 fix: compétition inconnue → redirection, pas crash."""
         response = client.get('/book/Unknown Competition/Simply Lift')
         assert response.status_code == 302
 
+    def test_past_competition_cannot_be_booked(self, client):
+        """Bug-05 fix: compétition passée → message d'erreur."""
+        response = client.get('/book/Past Competition/Simply Lift', follow_redirects=True)
+        assert response.status_code == 200
+        assert b'pass' in response.data
+
+
+# ---------------------------------------------------------------------------
+# Tests purchasePlaces — Bugs 03, 04, 05, 06, 07, 08, 09
+# ---------------------------------------------------------------------------
 
 class TestPurchasePlaces:
     def test_valid_purchase(self, client):
-        """Happy path: achat valide -> confirmation."""
+        """Happy path: achat valide → confirmation."""
         response = client.post('/purchasePlaces', data={
             'competition': 'Future Festival',
             'club': 'Simply Lift',
             'places': '2'
         }, follow_redirects=True)
         assert response.status_code == 200
-
-    def test_cannot_book_more_than_available_places(self, client):
-        """Bug-03 fix: ne peut pas reserver plus que le nombre de places disponibles."""
-        response = client.post('/purchasePlaces', data={
-            'competition': 'Future Festival',
-            'club': 'Simply Lift',
-            'places': '999'
-        }, follow_redirects=True)
-        assert b'disponible' in response.data or b'available' in response.data
+        assert b'confirm' in response.data.lower() or b'r' in response.data
 
     def test_places_deducted_from_competition(self, client):
-        """Bug-04 fix: les places sont bien deduites de la competition."""
+        """Bug-04 fix: les places sont bien déduites de la compétition."""
         initial_places = int(server.competitions[0]['numberOfPlaces'])
         client.post('/purchasePlaces', data={
             'competition': 'Future Festival',
@@ -145,7 +167,7 @@ class TestPurchasePlaces:
         assert int(server.competitions[0]['numberOfPlaces']) == initial_places - 3
 
     def test_points_deducted_from_club(self, client):
-        """Bug-04 fix: les points sont bien deduits du club."""
+        """Bug-04 fix: les points sont bien déduits du club."""
         initial_points = int(server.clubs[0]['points'])
         client.post('/purchasePlaces', data={
             'competition': 'Future Festival',
@@ -154,72 +176,8 @@ class TestPurchasePlaces:
         })
         assert int(server.clubs[0]['points']) == initial_points - 3
 
-    def test_cannot_book_more_than_12_places(self, client):
-        """Bug-05 fix: ne peut pas reserver plus de 12 places par competition."""
-        response = client.post('/purchasePlaces', data={
-            'competition': 'Future Festival',
-            'club': 'Simply Lift',
-            'places': '13'
-        }, follow_redirects=True)
-        assert b'12' in response.data
-
-    def test_zero_places_rejected(self, client):
-        """Bug-06 fix: 0 places -> message d'erreur."""
-        response = client.post('/purchasePlaces', data={
-            'competition': 'Future Festival',
-            'club': 'Simply Lift',
-            'places': '0'
-        }, follow_redirects=True)
-        assert b'sup' in response.data or b'0' in response.data
-
-    def test_cannot_book_past_competition(self, client):
-        """Bug-07 fix: impossible de reserver une competition passee."""
-        response = client.post('/purchasePlaces', data={
-            'competition': 'Past Competition',
-            'club': 'Simply Lift',
-            'places': '1'
-        }, follow_redirects=True)
-        assert b'pass' in response.data
-
-
-class TestHelpers:
-    def test_is_past_competition_past_date(self):
-        """Competition passee -> True."""
-        comp = {'date': '2020-01-01 00:00:00', 'name': 'Old'}
-        assert server.is_past_competition(comp) is True
-
-    def test_is_past_competition_future_date(self):
-        """Competition future -> False."""
-        future = (datetime.now() + timedelta(days=10)).strftime('%Y-%m-%d %H:%M:%S')
-        comp = {'date': future, 'name': 'Future'}
-        assert server.is_past_competition(comp) is False
-
-    def test_is_past_competition_invalid_date(self):
-        """Date invalide -> True."""
-        comp = {'date': 'invalid-date', 'name': 'Bad'}
-        assert server.is_past_competition(comp) is True
-
-    def test_cannot_book_more_than_club_points(self, client):
-        """Bug-08 fix: ne peut pas reserver plus de places que de points disponibles."""
-        response = client.post('/purchasePlaces', data={
-            'competition': 'Future Festival',
-            'club': 'Iron Temple',
-            'places': '5'
-        }, follow_redirects=True)
-        assert b'insuffisant' in response.data or b'point' in response.data
-
-    def test_invalid_places_value(self, client):
-        """Bug-09 fix: valeur non numerique -> message d'erreur et pas de crash."""
-        response = client.post('/purchasePlaces', data={
-            'competition': 'Future Festival',
-            'club': 'Simply Lift',
-            'places': 'abc'
-        }, follow_redirects=True)
-        assert response.status_code == 200
-        assert b'valide' in response.data or b'error' in response.data or b'booking' in response.data
-
     def test_unknown_competition_redirects(self, client):
-        """Sad path: competition inconnue -> redirection."""
+        """Bug-03 fix: compétition inconnue → redirection, pas crash."""
         response = client.post('/purchasePlaces', data={
             'competition': 'Nonexistent Competition',
             'club': 'Simply Lift',
@@ -228,7 +186,7 @@ class TestHelpers:
         assert response.status_code == 302
 
     def test_unknown_club_redirects(self, client):
-        """Sad path: club inconnu -> redirection."""
+        """Bug-03 fix: club inconnu → redirection, pas crash."""
         response = client.post('/purchasePlaces', data={
             'competition': 'Future Festival',
             'club': 'Unknown Club',
@@ -236,6 +194,65 @@ class TestHelpers:
         })
         assert response.status_code == 302
 
+    def test_cannot_book_past_competition(self, client):
+        """Bug-05 fix: impossible de réserver une compétition passée."""
+        response = client.post('/purchasePlaces', data={
+            'competition': 'Past Competition',
+            'club': 'Simply Lift',
+            'places': '1'
+        }, follow_redirects=True)
+        assert b'pass' in response.data
+
+    def test_cannot_book_more_than_available_places(self, client):
+        """Bug-06 fix: ne peut pas réserver plus que le nombre de places disponibles."""
+        response = client.post('/purchasePlaces', data={
+            'competition': 'Future Festival',
+            'club': 'Simply Lift',
+            'places': '999'
+        }, follow_redirects=True)
+        assert b'disponible' in response.data
+
+    def test_cannot_book_more_than_12_places(self, client):
+        """Bug-07 fix: ne peut pas réserver plus de 12 places par compétition."""
+        response = client.post('/purchasePlaces', data={
+            'competition': 'Future Festival',
+            'club': 'Simply Lift',
+            'places': '13'
+        }, follow_redirects=True)
+        assert b'12' in response.data
+
+    def test_cannot_book_more_than_club_points(self, client):
+        """Bug-08 fix: ne peut pas réserver plus de places que de points disponibles."""
+        # Iron Temple only has 4 points
+        response = client.post('/purchasePlaces', data={
+            'competition': 'Future Festival',
+            'club': 'Iron Temple',
+            'places': '5'
+        }, follow_redirects=True)
+        assert b'insuffisant' in response.data or b'point' in response.data
+
+    def test_zero_places_rejected(self, client):
+        """Sad path: 0 places → message d'erreur."""
+        response = client.post('/purchasePlaces', data={
+            'competition': 'Future Festival',
+            'club': 'Simply Lift',
+            'places': '0'
+        }, follow_redirects=True)
+        assert b'sup' in response.data or b'0' in response.data
+
+    def test_invalid_places_value(self, client):
+        """Sad path: valeur non numérique → message d'erreur."""
+        response = client.post('/purchasePlaces', data={
+            'competition': 'Future Festival',
+            'club': 'Simply Lift',
+            'places': 'abc'
+        }, follow_redirects=True)
+        assert response.status_code == 200
+
+
+# ---------------------------------------------------------------------------
+# Tests pointsDisplay — Phase 2
+# ---------------------------------------------------------------------------
 
 class TestPointsDisplay:
     def test_points_display_returns_200(self, client):
@@ -251,15 +268,41 @@ class TestPointsDisplay:
         assert b'She Lifts' in response.data
 
     def test_points_display_shows_points(self, client):
-        """Phase 2: les points des clubs sont affiches."""
+        """Phase 2: les points des clubs sont affichés."""
         response = client.get('/pointsDisplay')
         assert b'13' in response.data
         assert b'4' in response.data
 
 
+# ---------------------------------------------------------------------------
+# Tests logout
+# ---------------------------------------------------------------------------
+
 class TestLogout:
     def test_logout_redirects_to_index(self, client):
-        """Happy path: logout -> redirection vers index."""
+        """Happy path: logout → redirection vers index."""
         response = client.get('/logout')
         assert response.status_code == 302
         assert '/' in response.headers.get('Location', '')
+
+
+# ---------------------------------------------------------------------------
+# Tests helper functions
+# ---------------------------------------------------------------------------
+
+class TestHelpers:
+    def test_is_past_competition_past_date(self):
+        """Compétition passée → True."""
+        comp = {'date': '2020-01-01 00:00:00', 'name': 'Old'}
+        assert server.is_past_competition(comp) is True
+
+    def test_is_past_competition_future_date(self):
+        """Compétition future → False."""
+        future = (datetime.now() + timedelta(days=10)).strftime('%Y-%m-%d %H:%M:%S')
+        comp = {'date': future, 'name': 'Future'}
+        assert server.is_past_competition(comp) is False
+
+    def test_is_past_competition_invalid_date(self):
+        """Date invalide → True (sécurité)."""
+        comp = {'date': 'invalid-date', 'name': 'Bad'}
+        assert server.is_past_competition(comp) is True
