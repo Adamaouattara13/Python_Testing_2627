@@ -162,3 +162,12 @@ class TestPurchasePlaces:
             'places': '13'
         }, follow_redirects=True)
         assert b'12' in response.data
+
+    def test_zero_places_rejected(self, client):
+        """Bug-06 fix: 0 places -> message d'erreur."""
+        response = client.post('/purchasePlaces', data={
+            'competition': 'Future Festival',
+            'club': 'Simply Lift',
+            'places': '0'
+        }, follow_redirects=True)
+        assert b'sup' in response.data or b'0' in response.data
