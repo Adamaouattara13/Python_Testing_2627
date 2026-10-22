@@ -95,3 +95,21 @@ class TestShowSummary:
         """Sad path: email vide -> redirection."""
         response = client.post('/showSummary', data={'email': ''})
         assert response.status_code == 302
+
+
+class TestBook:
+    def test_valid_club_and_competition(self, client):
+        """Happy path: club et competition valides -> page booking."""
+        response = client.get('/book/Future Festival/Simply Lift')
+        assert response.status_code == 200
+        assert b'Future Festival' in response.data
+
+    def test_unknown_club_redirects(self, client):
+        """Bug-02 fix: club inconnu -> redirection, pas de crash."""
+        response = client.get('/book/Future Festival/Unknown Club')
+        assert response.status_code == 302
+
+    def test_unknown_competition_redirects(self, client):
+        """Bug-02 fix: competition inconnue -> redirection, pas de crash."""
+        response = client.get('/book/Unknown Competition/Simply Lift')
+        assert response.status_code == 302
