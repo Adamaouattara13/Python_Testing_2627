@@ -73,7 +73,11 @@ def purchasePlaces():
     if is_past_competition(competition):
         flash("Impossible de réserver pour une compétition passée.", 'error')
         return render_template('welcome.html', club=club, competitions=competitions)
-    placesRequired = int(request.form['places'])
+    try:
+        placesRequired = int(request.form.get('places', 0))
+    except (ValueError, TypeError):
+        flash("Veuillez saisir un nombre entier valide.", 'error')
+        return render_template('booking.html', club=club, competition=competition)
     if placesRequired <= 0:
         flash("Le nombre de places doit être supérieur à zéro.", 'error')
         return render_template('booking.html', club=club, competition=competition)
