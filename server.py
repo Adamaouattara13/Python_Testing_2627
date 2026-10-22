@@ -1,5 +1,16 @@
 import json
-from flask import Flask,render_template,request,redirect,flash,url_for
+from datetime import datetime
+from flask import Flask, render_template, request, redirect, flash, url_for
+
+
+def is_past_competition(competition):
+    """Vérifie si la date d'une compétition est passée."""
+    try:
+        comp_date = datetime.strptime(competition['date'], '%Y-%m-%d %H:%M:%S')
+        return comp_date < datetime.now()
+    except (ValueError, KeyError, TypeError):
+        return True
+
 
 
 def loadClubs():
@@ -44,6 +55,9 @@ def book(competition, club):
         return redirect(url_for('index'))
     foundClub = found_clubs[0]
     foundCompetition = found_comps[0]
+    if is_past_competition(foundCompetition):
+        flash("Cette compétition est déjà terminée.", 'error')
+        return redirect(url_for('index'))
     return render_template('booking.html', club=foundClub, competition=foundCompetition)
 
 
@@ -56,6 +70,9 @@ def purchasePlaces():
         return redirect(url_for('index'))
     competition = comp_matches[0]
     club = club_matches[0]
+    if is_past_competition(competition):
+        flash("Impossible de réserver pour une compétition passée.", 'error')
+        return render_template('welcome.html', club=club, competitions=competitions)
     placesRequired = int(request.form['places'])
     if placesRequired <= 0:
         flash("Le nombre de places doit être supérieur à zéro.", 'error')
