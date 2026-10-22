@@ -207,3 +207,13 @@ class TestHelpers:
             'places': '5'
         }, follow_redirects=True)
         assert b'insuffisant' in response.data or b'point' in response.data
+
+    def test_invalid_places_value(self, client):
+        """Bug-09 fix: valeur non numerique -> message d'erreur et pas de crash."""
+        response = client.post('/purchasePlaces', data={
+            'competition': 'Future Festival',
+            'club': 'Simply Lift',
+            'places': 'abc'
+        }, follow_redirects=True)
+        assert response.status_code == 200
+        assert b'valide' in response.data or b'error' in response.data or b'booking' in response.data
