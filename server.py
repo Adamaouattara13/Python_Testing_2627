@@ -57,6 +57,9 @@ def purchasePlaces():
     competition = comp_matches[0]
     club = club_matches[0]
     placesRequired = int(request.form['places'])
+    if placesRequired > 12:
+        flash("Impossible de réserver plus de 12 places en une seule fois.", 'error')
+        return render_template('booking.html', club=club, competition=competition)
     if placesRequired > int(competition['numberOfPlaces']):
         flash(f"Impossible de réserver : seulement {competition['numberOfPlaces']} places disponibles.", 'error')
         return render_template('booking.html', club=club, competition=competition)
