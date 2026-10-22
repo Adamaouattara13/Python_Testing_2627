@@ -171,3 +171,30 @@ class TestPurchasePlaces:
             'places': '0'
         }, follow_redirects=True)
         assert b'sup' in response.data or b'0' in response.data
+
+    def test_cannot_book_past_competition(self, client):
+        """Bug-07 fix: impossible de reserver une competition passee."""
+        response = client.post('/purchasePlaces', data={
+            'competition': 'Past Competition',
+            'club': 'Simply Lift',
+            'places': '1'
+        }, follow_redirects=True)
+        assert b'pass' in response.data
+
+
+class TestHelpers:
+    def test_is_past_competition_past_date(self):
+        """Competition passee -> True."""
+        comp = {'date': '2020-01-01 00:00:00', 'name': 'Old'}
+        assert server.is_past_competition(comp) is True
+
+    def test_is_past_competition_future_date(self):
+        """Competition future -> False."""
+        future = (datetime.now() + timedelta(days=10)).strftime('%Y-%m-%d %H:%M:%S')
+        comp = {'date': future, 'name': 'Future'}
+        assert server.is_past_competition(comp) is False
+
+    def test_is_past_competition_invalid_date(self):
+        """Date invalide -> True."""
+        comp = {'date': 'invalid-date', 'name': 'Bad'}
+        assert server.is_past_competition(comp) is True
