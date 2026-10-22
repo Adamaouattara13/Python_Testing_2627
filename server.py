@@ -47,12 +47,20 @@ def book(competition, club):
     return render_template('booking.html', club=foundClub, competition=foundCompetition)
 
 
-@app.route('/purchasePlaces',methods=['POST'])
+@app.route('/purchasePlaces', methods=['POST'])
 def purchasePlaces():
-    competition = [c for c in competitions if c['name'] == request.form['competition']][0]
-    club = [c for c in clubs if c['name'] == request.form['club']][0]
+    comp_matches = [c for c in competitions if c['name'] == request.form.get('competition')]
+    club_matches = [c for c in clubs if c['name'] == request.form.get('club')]
+    if not comp_matches or not club_matches:
+        flash("Données de réservation invalides.", 'error')
+        return redirect(url_for('index'))
+    competition = comp_matches[0]
+    club = club_matches[0]
     placesRequired = int(request.form['places'])
-    competition['numberOfPlaces'] = int(competition['numberOfPlaces'])-placesRequired
+    if placesRequired > int(competition['numberOfPlaces']):
+        flash(f"Impossible de réserver : seulement {competition['numberOfPlaces']} places disponibles.", 'error')
+        return render_template('booking.html', club=club, competition=competition)
+    competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - placesRequired
     flash('Great-booking complete!')
     return render_template('welcome.html', club=club, competitions=competitions)
 
