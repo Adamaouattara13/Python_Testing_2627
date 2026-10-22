@@ -19,6 +19,19 @@ def loadClubs():
          return listOfClubs
 
 
+
+
+def saveClubs(clubs_data):
+    """Sauvegarde la liste des clubs dans clubs.json."""
+    with open('clubs.json', 'w') as c:
+        json.dump({'clubs': clubs_data}, c, indent=4)
+
+
+def saveCompetitions(comps_data):
+    """Sauvegarde la liste des compétitions dans competitions.json."""
+    with open('competitions.json', 'w') as comps:
+        json.dump({'competitions': comps_data}, comps, indent=4)
+
 def loadCompetitions():
     with open('competitions.json') as comps:
          listOfCompetitions = json.load(comps)['competitions']
@@ -92,6 +105,8 @@ def purchasePlaces():
         return render_template('booking.html', club=club, competition=competition)
     competition['numberOfPlaces'] = int(competition['numberOfPlaces']) - placesRequired
     club['points'] = int(club['points']) - placesRequired
+    saveCompetitions(competitions)
+    saveClubs(clubs)
     flash('Great-booking complete!')
     return render_template('welcome.html', club=club, competitions=competitions)
 

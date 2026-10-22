@@ -217,3 +217,21 @@ class TestHelpers:
         }, follow_redirects=True)
         assert response.status_code == 200
         assert b'valide' in response.data or b'error' in response.data or b'booking' in response.data
+
+    def test_unknown_competition_redirects(self, client):
+        """Sad path: competition inconnue -> redirection."""
+        response = client.post('/purchasePlaces', data={
+            'competition': 'Nonexistent Competition',
+            'club': 'Simply Lift',
+            'places': '1'
+        })
+        assert response.status_code == 302
+
+    def test_unknown_club_redirects(self, client):
+        """Sad path: club inconnu -> redirection."""
+        response = client.post('/purchasePlaces', data={
+            'competition': 'Future Festival',
+            'club': 'Unknown Club',
+            'places': '1'
+        })
+        assert response.status_code == 302
