@@ -1,28 +1,60 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Points Display | GUDLFT Registration</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <h1>Tableau des Points des Clubs</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>Club</th>
-                <th>Points disponibles</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for club in clubs %}
-            <tr>
-                <td>{{ club['name'] }}</td>
-                <td>{{ club['points'] }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <br/>
-    <a href="{{ url_for('index') }}">Retour à l'accueil</a>
+    <header class="navbar">
+        <a href="{{ url_for('index') }}" class="navbar-brand">
+            <span class="logo-icon">🏋️</span>
+            <span>GÜDLFT Portal</span>
+        </a>
+        <nav>
+            <ul class="navbar-nav">
+                <li><a href="{{ url_for('index') }}" class="nav-link">Accueil</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <h1>Tableau des Points des Clubs</h1>
+                    <p class="card-subtitle">Consultation publique en lecture seule des soldes de points par club</p>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Club</th>
+                            <th>Points disponibles</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for club in clubs %}
+                        <tr>
+                            <td><strong>{{ club['name'] }}</strong></td>
+                            <td><span class="points-value">{{ club['points'] }}</span> points</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 1.5rem;">
+                <a href="{{ url_for('index') }}" class="back-link">← Retour à l'accueil</a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 GÜDLFT - Système de Réservation Régionale</p>
+    </footer>
 </body>
 </html>

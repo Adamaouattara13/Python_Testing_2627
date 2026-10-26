@@ -1,0 +1,583 @@
+/* ==========================================================================
+   GUDLFT - Plateforme de Réservation de Compétitions
+   Feuille de style principale (Vanilla CSS moderne & responsive)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-light: #eff6ff;
+    --secondary: #64748b;
+    --secondary-hover: #475569;
+    --success: #16a34a;
+    --success-bg: #dcfce7;
+    --success-border: #86efac;
+    --danger: #dc2626;
+    --danger-bg: #fee2e2;
+    --danger-border: #fca5a5;
+    --warning: #d97706;
+    --warning-bg: #fef3c7;
+    --warning-border: #fcd34d;
+    --info: #0284c7;
+    --info-bg: #e0f2fe;
+    --bg-page: #f8fafc;
+    --bg-card: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --transition: all 0.2s ease-in-out;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--bg-page);
+    color: var(--text-main);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ==========================================================================
+   Navigation Bar
+   ========================================================================== */
+.navbar {
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.85rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--primary);
+    text-decoration: none;
+    letter-spacing: -0.02em;
+}
+
+.navbar-brand .logo-icon {
+    width: 34px;
+    height: 34px;
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    color: white;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 800;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+}
+
+.navbar-nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    list-style: none;
+}
+
+.nav-link {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.925rem;
+    font-weight: 500;
+    padding: 0.5rem 0.85rem;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.nav-link:hover {
+    color: var(--primary);
+    background-color: var(--primary-light);
+}
+
+.nav-link.btn-logout {
+    color: var(--danger);
+    background-color: var(--danger-bg);
+}
+
+.nav-link.btn-logout:hover {
+    background-color: #fecaca;
+    color: #b91c1c;
+}
+
+/* ==========================================================================
+   Container & Layout
+   ========================================================================== */
+.container {
+    width: 100%;
+    max-width: 960px;
+    margin: 2rem auto;
+    padding: 0 1.25rem;
+    flex: 1;
+}
+
+.container-narrow {
+    max-width: 540px;
+}
+
+/* ==========================================================================
+   Cards
+   ========================================================================== */
+.card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    transition: var(--transition);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+.card-header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.card-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: -0.01em;
+}
+
+.card-subtitle {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-top: 0.25rem;
+}
+
+/* ==========================================================================
+   Typography & Headers
+   ========================================================================== */
+h1, h2, h3 {
+    color: var(--text-main);
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+h1 {
+    font-size: 1.85rem;
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+}
+
+h2 {
+    font-size: 1.4rem;
+    margin-bottom: 0.75rem;
+}
+
+h3 {
+    font-size: 1.15rem;
+    margin: 1.5rem 0 1rem 0;
+    color: var(--secondary-hover);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.85rem;
+}
+
+/* ==========================================================================
+   Flash Messages / Alerts
+   ========================================================================== */
+.flash-messages {
+    list-style: none;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.flash-message {
+    padding: 0.9rem 1.25rem;
+    border-radius: var(--radius-md);
+    font-size: 0.925rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    animation: fadeIn 0.3s ease-out;
+    background-color: var(--danger-bg);
+    color: #991b1b;
+    border: 1px solid var(--danger-border);
+}
+
+.flash-message.success {
+    background-color: var(--success-bg);
+    color: #14532d;
+    border-color: var(--success-border);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==========================================================================
+   Forms & Inputs
+   ========================================================================== */
+.form-group {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+input[type="email"],
+input[type="number"],
+input[type="text"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    font-family: inherit;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: #fdfdfd;
+    color: var(--text-main);
+    transition: var(--transition);
+    outline: none;
+}
+
+input[type="email"]:focus,
+input[type="number"]:focus,
+input[type="text"]:focus {
+    border-color: var(--primary);
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-primary, button[type="submit"] {
+    background-color: var(--primary);
+    color: #ffffff;
+    border: 1px solid transparent;
+}
+
+.btn-primary:hover, button[type="submit"]:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+    background-color: #ffffff;
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--bg-page);
+    color: var(--text-main);
+}
+
+.btn-sm {
+    padding: 0.45rem 0.9rem;
+    font-size: 0.85rem;
+    border-radius: var(--radius-sm);
+}
+
+.btn-block {
+    width: 100%;
+}
+
+/* ==========================================================================
+   Badges & Pills
+   ========================================================================== */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    background-color: var(--primary-light);
+    color: var(--primary);
+}
+
+.badge-points {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+    font-size: 1rem;
+    padding: 0.4rem 1rem;
+}
+
+.badge-open {
+    background-color: var(--success-bg);
+    color: #166534;
+}
+
+.badge-closed {
+    background-color: #f1f5f9;
+    color: #64748b;
+}
+
+/* ==========================================================================
+   Competitions List / Cards
+   ========================================================================== */
+.competitions-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.competition-item {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    transition: var(--transition);
+}
+
+.competition-item:hover {
+    border-color: #cbd5e1;
+    box-shadow: var(--shadow-sm);
+}
+
+.competition-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.competition-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text-main);
+}
+
+.competition-meta {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    display: flex;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+}
+
+.competition-action {
+    display: flex;
+    align-items: center;
+}
+
+/* ==========================================================================
+   Tables (Tableau des points)
+   ========================================================================== */
+.table-container {
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: #ffffff;
+    box-shadow: var(--shadow-sm);
+    margin: 1.5rem 0;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.95rem;
+}
+
+thead {
+    background-color: #f8fafc;
+    border-bottom: 2px solid var(--border-color);
+}
+
+th {
+    padding: 0.9rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--secondary-hover);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+td {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+}
+
+tbody tr:last-child td {
+    border-bottom: none;
+}
+
+tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+td .points-value {
+    font-weight: 700;
+    color: var(--primary);
+}
+
+/* ==========================================================================
+   Club Info Banner
+   ========================================================================== */
+.club-summary-banner {
+    background: linear-gradient(135deg, #1e3a8a, #2563eb);
+    color: #ffffff;
+    border-radius: var(--radius-lg);
+    padding: 1.75rem 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    box-shadow: var(--shadow-md);
+}
+
+.club-summary-banner h2 {
+    color: #ffffff;
+    font-size: 1.4rem;
+    margin-bottom: 0.25rem;
+}
+
+.club-summary-points {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius-md);
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.club-summary-points span {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #fef08a;
+}
+
+/* ==========================================================================
+   Links & Navigation Helpers
+   ========================================================================== */
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.925rem;
+    font-weight: 500;
+    margin-top: 1rem;
+    transition: var(--transition);
+}
+
+.back-link:hover {
+    color: var(--primary);
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+footer {
+    border-top: 1px solid var(--border-color);
+    background-color: #ffffff;
+    text-align: center;
+    padding: 1.25rem 2rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-top: auto;
+}
+
+/* ==========================================================================
+   Responsive Utilities
+   ========================================================================== */
+@media (max-width: 640px) {
+    .navbar {
+        padding: 0.75rem 1rem;
+    }
+
+    .container {
+        padding: 0 1rem;
+        margin: 1rem auto;
+    }
+
+    .card {
+        padding: 1.25rem;
+    }
+
+    .competition-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .club-summary-banner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

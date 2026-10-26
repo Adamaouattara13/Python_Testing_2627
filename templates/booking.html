@@ -1,30 +1,74 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Booking for {{competition['name']}} || GUDLFT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <h2>{{competition['name']}}</h2>
-    Places available: {{competition['numberOfPlaces']}}
+    <header class="navbar">
+        <a href="{{ url_for('index') }}" class="navbar-brand">
+            <span class="logo-icon">🏋️</span>
+            <span>GÜDLFT Portal</span>
+        </a>
+        <nav>
+            <ul class="navbar-nav">
+                <li><a href="{{ url_for('pointsDisplay') }}" class="nav-link">Tableau des points</a></li>
+                <li><a href="{{ url_for('logout') }}" class="nav-link btn-logout">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
 
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <ul>
-        {% for message in messages %}
-            <li>{{ message }}</li>
-        {% endfor %}
-        </ul>
-    {% endif %}
-    {% endwith %}
+    <main class="container container-narrow">
+        <div class="card">
+            <div class="card-header">
+                <div>
+                    <h2>{{competition['name']}}</h2>
+                    <p class="card-subtitle">Réservation de places pour <strong>{{club['name']}}</strong></p>
+                </div>
+                <div class="badge badge-points">
+                    Points du club : <strong>{{club['points']}}</strong>
+                </div>
+            </div>
 
-    <form action="/purchasePlaces" method="post">
-        <input type="hidden" name="club" value="{{club['name']}}">
-        <input type="hidden" name="competition" value="{{competition['name']}}">
-        <label for="places">How many places?</label><input type="number" name="places" id="places"/>
-        <button type="submit">Book</button>
-    </form>
-    <br/>
-    <a href="{{ url_for('index') }}">Retour à l'accueil</a>
+            <p style="margin-bottom: 1rem; font-weight: 500;">
+                Places available: <span class="badge badge-open">{{competition['numberOfPlaces']}}</span>
+            </p>
+
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="flash-messages">
+                {% for message in messages %}
+                    <li class="flash-message">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+            {% endwith %}
+
+            <form action="/purchasePlaces" method="post">
+                <input type="hidden" name="club" value="{{club['name']}}">
+                <input type="hidden" name="competition" value="{{competition['name']}}">
+                
+                <div class="form-group">
+                    <label for="places">How many places?</label>
+                    <input type="number" name="places" id="places" min="1" max="12" placeholder="Max 12 places" required />
+                    <small style="color: var(--text-muted); font-size: 0.8rem;">
+                        Rappel : 1 place = 1 point. Maximum 12 places par club.
+                    </small>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Book</button>
+            </form>
+
+            <div style="margin-top: 1.5rem; text-align: center;">
+                <a href="{{ url_for('index') }}" class="back-link">← Retour à l'accueil</a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 GÜDLFT - Système de Réservation Régionale</p>
+    </footer>
 </body>
 </html>

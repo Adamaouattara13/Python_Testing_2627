@@ -77,6 +77,11 @@ class TestIndex:
         response = client.get('/')
         assert b'email' in response.data
 
+    def test_index_loads_css(self, client):
+        """La page d'accueil intègre bien la feuille de style CSS."""
+        response = client.get('/')
+        assert b'style.css' in response.data
+
 
 # ---------------------------------------------------------------------------
 # Tests showSummary — Bug 01

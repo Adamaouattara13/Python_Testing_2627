@@ -1,36 +1,84 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Summary | GUDLFT Registration</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-        <h2>Welcome, {{club['email']}} </h2><a href="{{url_for('logout')}}">Logout</a>
+    <header class="navbar">
+        <a href="{{ url_for('index') }}" class="navbar-brand">
+            <span class="logo-icon">🏋️</span>
+            <span>GÜDLFT Portal</span>
+        </a>
+        <nav>
+            <ul class="navbar-nav">
+                <li><a href="{{ url_for('pointsDisplay') }}" class="nav-link">Tableau des points</a></li>
+                <li><a href="{{ url_for('logout') }}" class="nav-link btn-logout">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
 
-    {% with messages = get_flashed_messages()%}
-    {% if messages %}
-        <ul>
-       {% for message in messages %}
-            <li>{{message}}</li>
-        {% endfor %}
-       </ul>
-    {% endif%}
-    Points available: {{club['points']}}
-    <h3>Competitions:</h3>
-    <ul>
-        {% for comp in competitions%}
-        <li>
-            {{comp['name']}}<br />
-            Date: {{comp['date']}}</br>
-            Number of Places: {{comp['numberOfPlaces']}}
-            {%if comp['numberOfPlaces']|int >0%}
-            <a href="{{ url_for('book',competition=comp['name'],club=club['name']) }}">Book Places</a>
-            {%endif%}
-        </li>
-        <hr />
-        {% endfor %}
-    </ul>
-    {%endwith%}
+    <main class="container">
+        <!-- Bannière récapitulative du club -->
+        <section class="club-summary-banner">
+            <div>
+                <h2>Welcome, {{club['email']}}</h2>
+                <p style="opacity: 0.9; font-size: 0.95rem;">Club : <strong>{{club['name']}}</strong></p>
+            </div>
+            <div class="club-summary-points">
+                Points available: <span>{{club['points']}}</span>
+            </div>
+        </section>
 
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul class="flash-messages">
+            {% for message in messages %}
+                <li class="flash-message {% if 'Great' in message %}success{% endif %}">{{ message }}</li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Liste des compétitions -->
+        <section class="card">
+            <div class="card-header">
+                <div>
+                    <h1 class="card-title">Compétitions</h1>
+                    <p class="card-subtitle">Consultez les compétitions et réservez des places pour vos athlètes</p>
+                </div>
+            </div>
+
+            <h3>Competitions:</h3>
+            <ul class="competitions-list">
+                {% for comp in competitions %}
+                <li class="competition-item">
+                    <div class="competition-info">
+                        <div class="competition-name">{{ comp['name'] }}</div>
+                        <div class="competition-meta">
+                            <span>📅 Date: {{ comp['date'] }}</span>
+                            <span>🎟️ Number of Places: <strong>{{ comp['numberOfPlaces'] }}</strong></span>
+                        </div>
+                    </div>
+                    <div class="competition-action">
+                        {% if comp['numberOfPlaces']|int > 0 %}
+                            <a href="{{ url_for('book', competition=comp['name'], club=club['name']) }}" class="btn btn-primary btn-sm">
+                                Book Places
+                            </a>
+                        {% else %}
+                            <span class="badge badge-closed">Complet</span>
+                        {% endif %}
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 GÜDLFT - Système de Réservation Régionale</p>
+    </footer>
 </body>
 </html>
