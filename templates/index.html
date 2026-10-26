@@ -1,27 +1,60 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GUDLFT Registration</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <h1>Welcome to the GUDLFT Registration Portal!</h1>
+    <header class="navbar">
+        <a href="{{ url_for('index') }}" class="navbar-brand">
+            <span class="logo-icon">🏋️</span>
+            <span>GÜDLFT Portal</span>
+        </a>
+        <nav>
+            <ul class="navbar-nav">
+                <li><a href="{{ url_for('pointsDisplay') }}" class="nav-link">Tableau des points</a></li>
+            </ul>
+        </nav>
+    </header>
 
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <ul>
-        {% for message in messages %}
-            <li>{{ message }}</li>
-        {% endfor %}
-        </ul>
-    {% endif %}
-    {% endwith %}
+    <main class="container container-narrow">
+        <div class="card">
+            <h1>Welcome to the GUDLFT Registration Portal!</h1>
 
-    Please enter your secretary email to continue:
-    <form action="showSummary" method="post">
-        <label for="email">Email:</label>
-        <input type="email" name="email" id="email"/>
-        <button type="submit">Enter</button>
-    </form>
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="flash-messages">
+                {% for message in messages %}
+                    <li class="flash-message">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+            {% endwith %}
+
+            <p style="margin-bottom: 1.5rem; color: var(--text-muted);">
+                Please enter your secretary email to continue:
+            </p>
+
+            <form action="showSummary" method="post">
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" name="email" id="email" placeholder="ex: secretary@simplylift.co" required />
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Enter</button>
+            </form>
+
+            <div style="margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--border-color); text-align: center;">
+                <a href="{{ url_for('pointsDisplay') }}" class="back-link">
+                    📊 Consulter le tableau public des points des clubs
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 GÜDLFT - Système de Réservation Régionale</p>
+    </footer>
 </body>
 </html>
